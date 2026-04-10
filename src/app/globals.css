@@ -1,26 +1,141 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #07060b;
+  --foreground: #f7eff5;
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-syne);
+  --font-mono: var(--font-jetbrains-mono);
+  --beam-surface: rgba(28, 22, 40, 0.88);
+  --beam-surface-strong: rgba(18, 14, 27, 0.95);
+  --beam-border: rgba(255, 255, 255, 0.1);
+  --beam-glow: rgba(255, 91, 137, 0.28);
+  --beam-accent: #ff6d99;
+  --beam-accent-soft: #ffd3e0;
+  --beam-info: #7dd3fc;
+  --beam-success: #34d399;
+  --beam-danger: #fb7185;
+  --beam-text-muted: rgba(255, 255, 255, 0.64);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(255, 109, 153, 0.25);
+}
+
+.font-display {
+  font-family: var(--font-display), sans-serif;
+}
+
+.beam-surface {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.01)),
+    linear-gradient(180deg, rgba(34, 28, 49, 0.95), rgba(16, 13, 25, 0.95));
+  border: 1px solid var(--beam-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 30px 80px rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(22px);
+}
+
+.beam-panel {
+  background:
+    radial-gradient(circle at top, rgba(255, 140, 182, 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(28, 22, 40, 0.96), rgba(15, 12, 22, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 28px 80px rgba(0, 0, 0, 0.42);
+}
+
+.beam-grid-glow {
+  position: relative;
+}
+
+.beam-grid-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 215, 229, 0.24), rgba(255, 255, 255, 0.04));
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.beam-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.beam-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-in 220ms ease-out;
+}
+
+.animate-tile-in {
+  animation: tile-in 220ms ease-out;
 }
