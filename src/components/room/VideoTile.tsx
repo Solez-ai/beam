@@ -21,13 +21,17 @@ export function VideoTile({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
 
+  const trackCount = participant.stream?.getTracks().length;
+
   useEffect(() => {
-    if (!videoRef.current) {
+    if (!videoRef.current || !participant.stream) {
       return;
     }
 
-    videoRef.current.srcObject = participant.stream;
-  }, [participant.stream]);
+    if (videoRef.current.srcObject !== participant.stream) {
+      videoRef.current.srcObject = participant.stream;
+    }
+  }, [participant.stream, trackCount]);
 
   function clearLongPress() {
     if (longPressTimerRef.current) {
@@ -56,21 +60,23 @@ export function VideoTile({
       onPointerLeave={clearLongPress}
       onPointerUp={clearLongPress}
     >
-      {showVideo ? (
-        <video
-          autoPlay
-          className="h-full min-h-[14rem] w-full object-cover"
-          muted={participant.isLocal}
-          playsInline
-          ref={videoRef}
-        />
-      ) : (
+      <video
+        autoPlay
+        className={cn(
+          "h-full min-h-[14rem] w-full object-cover",
+          !showVideo ? "hidden" : ""
+        )}
+        muted={participant.isLocal}
+        playsInline
+        ref={videoRef}
+      />
+      {!showVideo ? (
         <div className="flex min-h-[14rem] h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,151,188,0.18),transparent_30%),linear-gradient(180deg,rgba(19,15,29,1),rgba(7,6,12,1))]">
           <div className="flex h-24 w-24 items-center justify-center rounded-full border border-white/10 bg-white/8 text-3xl font-semibold text-pink-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
             {participant.displayName.charAt(0).toUpperCase()}
           </div>
         </div>
-      )}
+      ) : null}
 
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.0),rgba(0,0,0,0.5))]" />
 
