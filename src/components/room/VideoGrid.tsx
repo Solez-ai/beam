@@ -14,7 +14,7 @@ function getGridClass(count: number, hasSharer: boolean) {
     return "grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_22rem] grid-rows-[minmax(24rem,1fr)_auto] lg:grid-rows-1";
   }
   if (count <= 1) {
-    return "grid-cols-1 auto-rows-[minmax(14rem,1fr)]";
+    return "grid-cols-1 auto-rows-[minmax(14rem,1fr)] h-[calc(100vh-14rem)]";
   }
   if (count === 2) {
     return "grid-cols-1 md:grid-cols-2 auto-rows-[minmax(14rem,1fr)]";

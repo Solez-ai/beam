@@ -14,6 +14,9 @@ import {
   ScreenShareIcon,
   UsersIcon,
 } from "@/components/ui/icons";
+import LikeIcon from "@/components/icons/LikeIcon";
+import ScanHeartIcon from "@/components/icons/ScanHeartIcon";
+import SkullEmoji from "@/components/icons/SkullEmoji";
 
 interface ControlBarProps {
   canShareScreen: boolean;
@@ -128,7 +131,18 @@ export function ControlBar({
             </Button>
           </div>
 
-          <div className="flex items-center justify-center sm:w-[280px] sm:justify-end">
+          <div className="flex items-center justify-center sm:w-[280px] sm:justify-end gap-2">
+            <div className="hidden lg:flex items-center gap-2 mr-2 px-3 py-2 rounded-full border border-white/10 bg-white/5">
+              <button aria-label="Like" className="p-1 hover:bg-white/10 rounded-full transition-colors">
+                <LikeIcon size={20} className="text-white" />
+              </button>
+              <button aria-label="Heart" className="p-1 hover:bg-white/10 rounded-full transition-colors">
+                <ScanHeartIcon size={20} className="text-pink-400" />
+              </button>
+              <button aria-label="Skull" className="p-1 hover:bg-white/10 rounded-full transition-colors">
+                <SkullEmoji size={20} className="text-white" />
+              </button>
+            </div>
             <Button className="h-10 w-full sm:w-auto px-4 text-xs sm:h-10 rounded-full" onClick={onLeave} variant="danger">
               <LeaveIcon className="h-4 w-4" />
               Leave Room
