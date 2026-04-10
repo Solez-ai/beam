@@ -17,7 +17,13 @@ export function JoinForm({
   error,
 }: JoinFormProps) {
   return (
-    <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+    <form
+      className="grid gap-3 md:grid-cols-[1fr_auto]"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onJoin();
+      }}
+    >
       <Input
         aria-label="Room code"
         autoComplete="off"
@@ -28,10 +34,10 @@ export function JoinForm({
         placeholder="A3K7PQ"
         value={roomCode}
       />
-      <Button className="w-full md:w-auto" onClick={onJoin} variant="secondary">
+      <Button className="w-full md:w-auto" type="submit" variant="secondary">
         Join Room
       </Button>
-    </div>
+    </form>
   );
 }
 

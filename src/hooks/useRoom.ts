@@ -630,6 +630,7 @@ export function useRoom(roomCode: string) {
           break;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSharerId, peerConnection, selfId]);
 
   useEffect(() => {
@@ -638,6 +639,7 @@ export function useRoom(roomCode: string) {
     }, 0);
 
     return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedName, isValidRoomCode]);
 
   useEffect(() => {
@@ -657,6 +659,7 @@ export function useRoom(roomCode: string) {
     return () => {
       void performCleanup(false);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -670,6 +673,7 @@ export function useRoom(roomCode: string) {
     }
 
     void startWhenAvailable();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSharerId, waitingToStartShare]);
 
   const localParticipant: Participant = {

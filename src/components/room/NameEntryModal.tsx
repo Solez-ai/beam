@@ -36,7 +36,15 @@ export function NameEntryModal({
           </p>
         </div>
 
-        <div className="mt-6 space-y-4">
+        <form
+          className="mt-6 space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!onSubmit(value)) {
+              setError("Add your name before joining the room.");
+            }
+          }}
+        >
           <Input
             autoFocus
             error={error}
@@ -53,16 +61,12 @@ export function NameEntryModal({
           />
           <Button
             className="w-full"
-            onClick={() => {
-              if (!onSubmit(value)) {
-                setError("Add your name before joining the room.");
-              }
-            }}
             size="lg"
+            type="submit"
           >
             Join Room
           </Button>
-        </div>
+        </form>
       </div>
     </div>
   );

@@ -66,28 +66,72 @@ export function ControlBar({
       onMouseMove={onKeepVisible}
       onTouchStart={onKeepVisible}
     >
-      <div className="beam-surface mx-auto flex w-full max-w-5xl flex-col gap-3 rounded-[1.6rem] px-4 py-3">
-        <div className="mx-auto h-1 w-14 rounded-full bg-white/12" />
+      <div className="beam-surface mx-auto flex w-full max-w-5xl flex-col gap-3 rounded-[1.2rem] px-4 py-2 sm:py-3 sm:rounded-[1.6rem]">
+        <div className="mx-auto h-1 w-12 rounded-full bg-white/12 sm:hidden" />
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center justify-between sm:w-[280px] sm:justify-start gap-2">
             <Badge className="font-mono text-[11px] text-pink-100">Room {roomCode}</Badge>
-            <span className="text-xs text-white/50">
-              {isVisible ? "Meeting controls" : "Move cursor to reveal"}
-            </span>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Button className="h-9 px-3 text-xs" onClick={onCopyLink} variant="ghost">
+                {copyLinkStatus === "copied" ? (
+                  <CheckIcon className="h-4 w-4" />
+                ) : (
+                  <LinkIcon className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">{copyLinkStatus === "copied" ? "Copied" : "Copy"}</span>
+              </Button>
+              <Button className="h-9 px-3 text-xs" onClick={onToggleParticipants} variant={isParticipantsPanelOpen ? "primary" : "secondary"}>
+                <UsersIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Users</span>
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button className="h-10 px-4 text-xs" onClick={onCopyLink} variant="ghost">
-              {copyLinkStatus === "copied" ? (
-                <CheckIcon className="h-4 w-4" />
+
+          <div className="flex items-center justify-center gap-2">
+            <Button
+              aria-label={microphoneEnabled ? "Mute microphone" : "Unmute microphone"}
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full"
+              disabled={isMicrophoneDisabled}
+              onClick={onToggleMicrophone}
+              size="icon"
+              variant={microphoneEnabled ? "secondary" : "ghost"}
+            >
+              {microphoneEnabled ? (
+                <MicIcon className="h-5 w-5" />
               ) : (
-                <LinkIcon className="h-4 w-4" />
+                <MicOffIcon className="h-5 w-5" />
               )}
-              {copyLinkStatus === "copied" ? "Copied" : "Copy Link"}
             </Button>
-            <Button className="h-10 px-4 text-xs" onClick={onToggleParticipants} variant="secondary">
-              <UsersIcon className="h-4 w-4" />
-              {isParticipantsPanelOpen ? "Close Panel" : "Participants"}
+            <Button
+              aria-label={cameraEnabled ? "Turn camera off" : "Turn camera on"}
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full"
+              disabled={isCameraDisabled}
+              onClick={onToggleCamera}
+              size="icon"
+              variant={cameraEnabled ? "secondary" : "ghost"}
+            >
+              {cameraEnabled ? (
+                <CameraIcon className="h-5 w-5" />
+              ) : (
+                <CameraOffIcon className="h-5 w-5" />
+              )}
+            </Button>
+            <Button
+              className="h-10 px-4 text-xs sm:h-12 sm:px-5 sm:text-sm rounded-full"
+              disabled={!canShareScreen}
+              onClick={onStartShare}
+              variant={isSharingScreen ? "primary" : "secondary"}
+            >
+              <ScreenShareIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">{isSharingScreen ? "Stop Sharing" : "Share"}</span>
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-center sm:w-[280px] sm:justify-end">
+            <Button className="h-10 w-full sm:w-auto px-4 text-xs sm:h-10 rounded-full" onClick={onLeave} variant="danger">
+              <LeaveIcon className="h-4 w-4" />
+              Leave Room
             </Button>
           </div>
         </div>
@@ -105,53 +149,6 @@ export function ControlBar({
             />
           </div>
         ) : null}
-
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-between">
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button
-              aria-label={microphoneEnabled ? "Mute microphone" : "Unmute microphone"}
-              className="h-10 w-10"
-              disabled={isMicrophoneDisabled}
-              onClick={onToggleMicrophone}
-              size="icon"
-              variant={microphoneEnabled ? "secondary" : "ghost"}
-            >
-              {microphoneEnabled ? (
-                <MicIcon className="h-5 w-5" />
-              ) : (
-                <MicOffIcon className="h-5 w-5" />
-              )}
-            </Button>
-            <Button
-              aria-label={cameraEnabled ? "Turn camera off" : "Turn camera on"}
-              className="h-10 w-10"
-              disabled={isCameraDisabled}
-              onClick={onToggleCamera}
-              size="icon"
-              variant={cameraEnabled ? "secondary" : "ghost"}
-            >
-              {cameraEnabled ? (
-                <CameraIcon className="h-5 w-5" />
-              ) : (
-                <CameraOffIcon className="h-5 w-5" />
-              )}
-            </Button>
-            <Button
-              className="h-10 px-4 text-xs"
-              disabled={!canShareScreen}
-              onClick={onStartShare}
-              variant={isSharingScreen ? "primary" : "secondary"}
-            >
-              <ScreenShareIcon className="h-4 w-4" />
-              {isSharingScreen ? "Stop Sharing" : "Share Screen"}
-            </Button>
-          </div>
-
-          <Button className="h-10 px-4 text-xs" onClick={onLeave} variant="danger">
-            <LeaveIcon className="h-4 w-4" />
-            Leave Room
-          </Button>
-        </div>
       </div>
     </div>
   );
