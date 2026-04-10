@@ -90,6 +90,10 @@ export function useSignaling({
     };
 
     socket.onclose = () => {
+      if (socketRef.current !== socket) {
+        return;
+      }
+
       socketRef.current = null;
 
       if (manualCloseRef.current || !enabled) {
@@ -143,6 +147,7 @@ export function useSignaling({
       socketRef.current?.close();
       socketRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientInstanceId, displayName, enabled, roomCode]);
 
   return {

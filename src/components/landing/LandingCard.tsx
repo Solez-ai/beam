@@ -114,23 +114,31 @@ export function LandingCard() {
           </div>
 
           <div className="space-y-5">
-            <Input
-              error={nameError}
-              label="Display name"
-              maxLength={32}
-              onChange={(event) => {
-                setDisplayName(event.target.value);
-                if (nameError) {
-                  setNameError("");
-                }
+            <form
+              className="space-y-5"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCreateRoom();
               }}
-              placeholder="Samin"
-              value={storedName}
-            />
+            >
+              <Input
+                error={nameError}
+                label="Display name"
+                maxLength={32}
+                onChange={(event) => {
+                  setDisplayName(event.target.value);
+                  if (nameError) {
+                    setNameError("");
+                  }
+                }}
+                placeholder="Samin"
+                value={storedName}
+              />
 
-            <Button className="w-full" onClick={handleCreateRoom} size="lg">
-              Create Room
-            </Button>
+              <Button className="w-full" size="lg" type="submit">
+                Create Room
+              </Button>
+            </form>
 
             <div className="flex items-center gap-3 py-1">
               <div className="h-px flex-1 bg-white/10" />

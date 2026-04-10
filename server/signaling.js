@@ -264,3 +264,15 @@ server.on("error", (error) => {
 
   console.error("Beam signaling server failed to start.", error);
 });
+
+function shutdown() {
+  console.log("Shutting down signaling server...");
+  wss.close(() => {
+    server.close(() => {
+      process.exit(0);
+    });
+  });
+}
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
