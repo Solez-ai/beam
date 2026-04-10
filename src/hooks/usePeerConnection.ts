@@ -52,18 +52,16 @@ export function usePeerConnection({
     }
 
     const pc = new RTCPeerConnection(rtcConfig);
-    const audioTransceiver = pc.addTransceiver("audio", { direction: "sendrecv" });
-    const videoTransceiver = pc.addTransceiver("video", { direction: "sendrecv" });
-
     const audioTrack = getAudioTrack();
     const videoTrack = getVideoTrack();
 
-    if (audioTrack) {
-      void audioTransceiver.sender.replaceTrack(audioTrack);
-    }
-    if (videoTrack) {
-      void videoTransceiver.sender.replaceTrack(videoTrack);
-    }
+    const audioTransceiver = audioTrack
+      ? pc.addTransceiver(audioTrack, { direction: "sendrecv" })
+      : pc.addTransceiver("audio", { direction: "sendrecv" });
+
+    const videoTransceiver = videoTrack
+      ? pc.addTransceiver(videoTrack, { direction: "sendrecv" })
+      : pc.addTransceiver("video", { direction: "sendrecv" });
 
     pc.onicecandidate = (event) => {
       if (!event.candidate) {
@@ -132,12 +130,12 @@ export function usePeerConnection({
     pendingIceRef.current.delete(peerId);
   }
 
-  async function createOffer(peerId: string) {
+  async function createOffer(peerId: string, options?: RTCOfferOptions) {
     const { pc } = ensureConnection(peerId);
     if (pc.signalingState !== "stable") {
       return;
     }
-    const offer = await pc.createOffer();
+    const offer = await pc.createOffer(options);
     await pc.setLocalDescription(offer);
     onSignalRef.current({
       type: "offer",

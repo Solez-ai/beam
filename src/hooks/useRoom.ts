@@ -161,8 +161,19 @@ export function useRoom(roomCode: string) {
     });
   }
 
+  const localStreamRef = useRef<MediaStream | null>(null);
+
   function syncLocalStream() {
-    const preview = new MediaStream();
+    if (!localStreamRef.current) {
+      localStreamRef.current = new MediaStream();
+    }
+
+    const preview = localStreamRef.current;
+    
+    // Remove existing tracks
+    for (const track of preview.getTracks()) {
+      preview.removeTrack(track);
+    }
 
     if (activeVideoTrackRef.current) {
       preview.addTrack(activeVideoTrackRef.current);
@@ -171,6 +182,8 @@ export function useRoom(roomCode: string) {
       preview.addTrack(microphoneTrackRef.current);
     }
 
+    // Force a re-render by setting state, but keep the same stream object
+    // if it has tracks. If it's empty, we can set to null.
     setLocalStream(preview.getTracks().length ? preview : null);
   }
 
@@ -178,6 +191,16 @@ export function useRoom(roomCode: string) {
     getAudioTrack: () => microphoneTrackRef.current,
     getVideoTrack: () => activeVideoTrackRef.current,
     onConnectionStateChange: (peerId, state) => {
+      if (state === "failed") {
+        const participant = findParticipant(remoteParticipantsRef.current, peerId);
+        if (participant) {
+          addNotice(`Connection to ${participant.displayName} failed. Reconnecting...`, "info");
+        }
+        window.setTimeout(() => {
+          void peerConnection.createOffer(peerId, { iceRestart: true });
+        }, 1000);
+      }
+
       updateRemoteParticipant(peerId, (participant) => ({
         ...(participant ?? buildParticipant({ peerId })),
         connectionState: state,
@@ -408,16 +431,32 @@ export function useRoom(roomCode: string) {
   }
 
   async function toggleCamera() {
-    if (!cameraTrackRef.current) {
-      return;
+    if (cameraEnabled) {
+      if (cameraTrackRef.current) {
+        cameraTrackRef.current.stop();
+        cameraTrackRef.current = null;
+      }
+      setCameraEnabled(false);
+      if (!isSharingScreen) {
+        activeVideoTrackRef.current = null;
+        await peerConnection.replaceVideoTrack(null);
+      }
+      syncLocalStream();
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const videoTrack = stream.getVideoTracks()[0] ?? null;
+        cameraTrackRef.current = videoTrack;
+        setCameraEnabled(Boolean(videoTrack));
+        if (!isSharingScreen) {
+          activeVideoTrackRef.current = videoTrack;
+          await peerConnection.replaceVideoTrack(videoTrack);
+        }
+        syncLocalStream();
+      } catch {
+        addNotice("Could not access camera.", "danger");
+      }
     }
-
-    cameraTrackRef.current.enabled = !cameraTrackRef.current.enabled;
-    setCameraEnabled(cameraTrackRef.current.enabled);
-    if (!isSharingScreen) {
-      await peerConnection.replaceVideoTrack(cameraTrackRef.current);
-    }
-    syncLocalStream();
   }
 
   async function copyRoomLink() {
@@ -696,7 +735,10 @@ export function useRoom(roomCode: string) {
 
   const participants = dedupeParticipants(
     remoteParticipants
-      .filter((participant) => participant.peerId !== selfId)
+      .filter(
+        (participant) =>
+          participant.peerId !== selfId && participant.connectionState === "connected",
+      )
       .concat(localParticipant),
   );
   const mediaBanner =
