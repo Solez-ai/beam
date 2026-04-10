@@ -87,8 +87,7 @@ export function LandingCard() {
             </div>
             <p className="max-w-xl text-lg leading-8 text-white/68">
               Zero accounts, zero friction, and just enough control to run a clean call.
-              Beam is built for fast rooms, stable WebRTC handshakes, and a tactile claymorphic
-              interface shaped around your logo.
+              Beam is built for fast rooms, stable WebRTC handshakes, and a seamless meeting experience.
             </p>
           </div>
           <div className="flex flex-wrap gap-3 text-sm text-white/60">
