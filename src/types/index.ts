@@ -35,6 +35,7 @@ export interface Participant extends ParticipantSnapshot {
   connectionState: ConnectionState;
   mediaState: MediaPermissionState;
   isLocal: boolean;
+  reaction?: string | null;
 }
 
 export interface OutboundSignalMap {
@@ -92,6 +93,10 @@ export interface OutboundSignalMap {
   };
   "share-ended": {
     type: "share-ended";
+  };
+  reaction: {
+    type: "reaction";
+    reaction: string;
   };
   leave: {
     type: "leave";
@@ -171,6 +176,11 @@ export type InboundSignal =
   | {
       type: "share-ended";
       peerId: string;
+    }
+  | {
+      type: "reaction";
+      peerId: string;
+      reaction: string;
     }
   | {
       type: "error";

@@ -131,12 +131,15 @@ export function usePeerNetwork({
 
     void initPeer();
 
+    const dataConns = dataConnsRef.current;
+    const mediaConns = mediaConnsRef.current;
+
     return () => {
       destroyed = true;
       peerRef.current?.destroy();
       peerRef.current = null;
-      dataConnsRef.current.clear();
-      mediaConnsRef.current.clear();
+      dataConns.clear();
+      mediaConns.clear();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, roomCode, displayName]);
@@ -155,6 +158,7 @@ export function usePeerNetwork({
   function setupDataConn(conn: DataConnection) {
     conn.on("open", () => {
       dataConnsRef.current.set(conn.peer, conn);
+      onConnectionStateChangeRef.current(conn.peer, "connected");
       
       if (!isHostRef.current && conn.peer === hostIdRef.current) {
         // We just connected to the host, send join message
@@ -189,6 +193,7 @@ export function usePeerNetwork({
 
     call.on("stream", (remoteStream) => {
       onRemoteStreamRef.current(call.peer, remoteStream);
+      onConnectionStateChangeRef.current(call.peer, "connected");
     });
 
     call.on("close", () => {
@@ -313,6 +318,13 @@ export function usePeerNetwork({
         inbound = { type: "share-ended", peerId: fromPeerId } as InboundSignal;
         break;
         
+      case "reaction":
+        inbound = { type: "reaction", peerId: fromPeerId, reaction: data.reaction } as InboundSignal;
+        if (isHostRef.current) {
+          broadcastData({ type: "reaction", peerId: fromPeerId, reaction: data.reaction }, fromPeerId);
+        }
+        break;
+
       case "leave":
         roomStateRef.current.participants.delete(fromPeerId);
         inbound = { type: "peer-left", peerId: fromPeerId } as InboundSignal;
@@ -337,7 +349,7 @@ export function usePeerNetwork({
 
   function send(signal: OutboundSignal) {
     // If it's a broadcast signal, send to everyone
-    const broadcastTypes = ["participant-state", "share-ended", "leave"];
+    const broadcastTypes = ["participant-state", "share-ended", "leave", "reaction"];
     if (broadcastTypes.includes(signal.type)) {
       broadcastData(signal);
       
@@ -386,10 +398,12 @@ export function usePeerNetwork({
     if (!audioTrack) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      const ctx = new AudioContextClass();
-      const dst = ctx.createMediaStreamDestination();
-      audioTrack = dst.stream.getAudioTracks()[0];
-      audioTrack.enabled = false;
+      if (AudioContextClass) {
+        const ctx = new AudioContextClass();
+        const dst = ctx.createMediaStreamDestination();
+        audioTrack = dst.stream.getAudioTracks()[0];
+        audioTrack.enabled = false;
+      }
     }
     
     if (!videoTrack) {
@@ -400,8 +414,8 @@ export function usePeerNetwork({
       videoTrack.enabled = false;
     }
 
-    stream.addTrack(audioTrack);
-    stream.addTrack(videoTrack);
+    if (audioTrack) stream.addTrack(audioTrack);
+    if (videoTrack) stream.addTrack(videoTrack);
     return stream;
   }
 
