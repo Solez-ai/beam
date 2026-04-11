@@ -21,6 +21,7 @@ export function RoomExperience({ roomCode }: { roomCode: string }) {
   const router = useRouter();
   const room = useRoom(roomCode);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
+  const [pinnedPeerId, setPinnedPeerId] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [isControlBarVisible, setIsControlBarVisible] = useState(true);
   const shouldForceControlsVisible =
@@ -138,7 +139,7 @@ export function RoomExperience({ roomCode }: { roomCode: string }) {
   return (
     <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,130,168,0.18),transparent_24%),radial-gradient(circle_at_top_right,rgba(120,90,255,0.15),transparent_26%),linear-gradient(180deg,#100d18_0%,#07060b_55%,#040308_100%)] px-3 pb-36 pt-4 text-white sm:px-6">
       <div className="mx-auto flex max-w-7xl flex-col gap-4">
-        <header className="beam-surface flex flex-col gap-4 rounded-[2rem] px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+        <header className="beam-surface hidden sm:flex flex-col gap-4 rounded-[2rem] px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-3">
               <p className="font-display text-3xl tracking-[-0.05em]">Beam Room</p>
@@ -167,9 +168,13 @@ export function RoomExperience({ roomCode }: { roomCode: string }) {
 
         <VideoGrid
           activeSharerId={room.activeSharerId}
+          pinnedPeerId={pinnedPeerId}
           isHostViewer={isHostViewer}
           onOpenActions={(participant) => {
             setSelectedParticipant(participant);
+          }}
+          onTogglePin={(peerId) => {
+            setPinnedPeerId(prev => prev === peerId ? null : peerId);
           }}
           participants={room.participants}
         />

@@ -33,4 +33,5 @@ export const XIcon = createIcon("M6 6l12 12M18 6 6 18");
 export const CopyIcon = createIcon("M9 9h10v12H9zM5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1");
 export const CheckIcon = createIcon("M5 12.5 9.5 17 19 7");
 export const VolumeXIcon = createIcon("M11 5 6 9H3v6h3l5 4zM22 9l-6 6M16 9l6 6");
+export const PinIcon = createIcon("M21.17 3.23a3 3 0 0 0-4.24 0L14 6l-5.66-2L6.22 6.12 9.4 9.3 3.75 14.95a1 1 0 0 0 0 1.41l3.89 3.89a1 1 0 0 0 1.41 0l5.66-5.66 3.18 3.18 2.12-2.12-2-5.66 2.83-2.83a3 3 0 0 0 0-4.24zM16.41 12l2-2");
 
