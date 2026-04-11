@@ -28,12 +28,9 @@
 
 ## Architecture
 
-Beam is split into two runtime pieces:
+Beam runs entirely in the browser using a Next.js App Router frontend in `src/`. It relies on PeerJS to facilitate WebRTC peer discovery, data signaling, and media stream connections, entirely replacing the need for a custom signaling server.
 
-- A Next.js App Router frontend in `src/` for the landing page, room UI, media handling, and peer management.
-- A standalone `ws` signaling server in `server/signaling.js` that manages room membership, relays SDP/ICE messages, validates host authority, and keeps room state entirely in memory.
-
-The signaling layer never stores media, user records, or session history. Audio, video, and screen-share traffic flows directly between browsers over WebRTC.
+The application uses the public PeerServer to exchange connection requests. Once peers discover each other, audio, video, and screen-share traffic flows directly between browsers over WebRTC.
 
 ## Getting Started
 
@@ -44,46 +41,24 @@ The signaling layer never stores media, user records, or session history. Audio,
 npm install
 ```
 
-3. Configure environment variables:
-
-```bash
-NEXT_PUBLIC_SIGNALING_URL=ws://localhost:4511
-PORT=4511
-```
-
-4. Run the app and signaling server together:
+3. Run the app:
 
 ```bash
 npm run dev
 ```
 
-5. Or run them separately:
-
-```bash
-npm run dev:app
-npm run dev:signal
-```
-
-6. Open `http://localhost:3000`.
+4. Open `http://localhost:3000`.
 
 ## Scripts
 
-- `npm run dev` starts the Next.js app and the signaling server together.
-- `npm run dev:app` starts only the Next.js app.
-- `npm run dev:signal` starts only the signaling server.
+- `npm run dev` starts the Next.js app.
 - `npm run build` creates a production build of the app.
-- `npm run signal` runs the signaling server without watch mode.
 - `npm run lint` runs ESLint across the project.
 - `npm run test` runs the Vitest suite.
 
 ## Deployment
 
-Deploy the frontend to Vercel and the signaling server to a persistent Node host such as Render or Railway.
-
-- Frontend env: `NEXT_PUBLIC_SIGNALING_URL=wss://your-signal-host`
-- Signaling env: `PORT=4511` locally, or your hosted service port in production
-
-Because the signaling server holds active WebSocket connections, it should run as a persistent service rather than a serverless function.
+Deploy the frontend to any static or serverless host, such as Vercel. Since the app is completely peer-to-peer and relies on the default public PeerJS server, no additional backend services are required.
 
 ## Creator
 
