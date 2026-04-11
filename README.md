@@ -19,11 +19,11 @@
 ## See what the App Looks Like
 
 <div align="center">
-  <img src="https://file.trae.ai/uploads/20260411/ca37a1f52d5b6b15804362145b2063bb.webp" alt="Landing Page" width="800" />
+  <img src="https://i.postimg.cc/vZJrFmcf/715-1x-shots-so.png" alt="Landing Page" width="800" />
   <br/><br/>
-  <img src="https://file.trae.ai/uploads/20260411/045330a84e27f023f03b8796ed44f3bd.webp" alt="Room View" width="800" />
+  <img src="https://i.postimg.cc/XYGfz57v/Mockup-Views-1x-PNG-20260411-296.png" alt="Room View" width="800" />
   <br/><br/>
-  <img src="https://file.trae.ai/uploads/20260411/f8430f8335f601a7d65b1285b0d0ed4b.webp" alt="Screen Sharing View" width="800" />
+  <img src="https://i.postimg.cc/dVb2P0LG/Mockup-Views-1x-PNG-20260411-504.png" alt="Screen Sharing View" width="800" />
 </div>
 
 ## Features
