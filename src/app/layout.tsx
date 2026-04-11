@@ -35,13 +35,13 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     url: siteConfig.url,
     siteName: "Beam",
-    images: [{ url: "/logo.png", width: 512, height: 512, alt: "Beam logo" }],
+    images: [{ url: "/opengraph-image.png", width: 1920, height: 1080, alt: "Beam - Fast WebRTC calling app" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Beam",
     description: siteConfig.description,
-    images: ["/logo.png"],
+    images: ["/opengraph-image.png"],
   },
 };
 
