@@ -42,7 +42,7 @@
 
 Beam is a minimal, lightning-fast, browser-based video conferencing platform. It is purpose-built to eliminate every point of friction present in conventional meeting tools. There are no accounts, no logins, no dashboards, no recurring charges, and no feature bloat. A user arrives at the homepage, types their name, and either generates a new six-digit room code or types an existing one. That is the entire onboarding experience.
 
-Once inside a room, Beam establishes direct peer-to-peer audio and video connections between all participants using the WebRTC protocol. A lightweight WebSocket signaling server is the only backend component — it exists purely to coordinate connection setup (offer/answer exchange and ICE candidate relay) and never stores any media data, user records, or session history. All real-time communication happens directly between browsers.
+Once inside a room, Beam establishes direct peer-to-peer audio and video connections between all participants using the WebRTC protocol via PeerJS. The public PeerServer acts as the signaling layer — it exists purely to coordinate connection setup (offer/answer exchange and ICE candidate relay) and never stores any media data, user records, or session history. All real-time communication happens directly between browsers.
 
 Beam is hosted on Vercel at **https://beam-call.vercel.app** and is entirely free to use. It is optimised for both desktop and mobile browsers and requires only a modern Chromium or Firefox-based engine to function.
 
@@ -56,7 +56,7 @@ Beam is guided by a small set of non-negotiable principles that inform every tec
 
 **No Unnecessary State.** Beam retains zero user data beyond the lifespan of a session. There is no database, no analytics event store, no user profile, no session log. When a room closes, it is gone.
 
-**Peer-First.** All audio, video, and screen-sharing data flows directly between participants via WebRTC data channels. The signaling server is a temporary matchmaker that exits the communication path the moment a connection is established.
+**Peer-First.** All audio, video, and screen-sharing data flows directly between participants via WebRTC data channels managed by PeerJS. The signaling server is a temporary matchmaker that exits the communication path the moment a connection is established.
 
 **Essential Features Only.** Beam provides camera, microphone, and screen sharing controls, a clean participant video grid, a copyable room link, and host controls. It does not provide in-call chat, reactions, whiteboards, polls, recording, virtual backgrounds, or any other feature that adds complexity without proportional value for a minimal conferencing tool.
 
@@ -171,8 +171,8 @@ A collapsible participants panel (toggled by a button in the control bar) slides
 5. The display name is stored in `sessionStorage`.
 6. The browser navigates to `/room/A3K7PQ`.
 7. The room page mounts, reads the display name from `sessionStorage`.
-8. The room page connects to the signaling WebSocket server, announces the room code and display name.
-9. The signaling server records this participant as the host of room `A3K7PQ`.
+8. The room page connects to the PeerJS server, announces the room code and display name.
+9. The first participant to connect becomes the host of room `A3K7PQ`.
 10. `getUserMedia` is called; the user's camera and microphone begin streaming.
 11. The user's self-view appears in the video grid.
 12. The user copies the room link and shares it with others.
@@ -186,10 +186,10 @@ A collapsible participants panel (toggled by a button in the control bar) slides
 4. User clicks "Join."
 5. Display name is stored in `sessionStorage`.
 6. Browser navigates to `/room/A3K7PQ`.
-7. Room page mounts, connects to signaling server.
-8. Signaling server sends back the list of existing peer IDs in the room.
-9. The new participant initiates WebRTC offer/answer handshake with each existing peer.
-10. Once connections are established, the new participant's video appears in the grids of existing participants, and existing participants' videos appear in the new participant's grid.
+7. Room page mounts, initializes a PeerJS connection.
+8. The client connects to the existing room host via a PeerJS data connection.
+9. The host responds with the list of existing peer IDs in the room.
+10. The new participant initiates a PeerJS media call with each existing peer.
 
 **Via shared link:**
 1. User receives the URL `https://beam-call.vercel.app/room/A3K7PQ`.
@@ -217,42 +217,20 @@ Beam consists of two distinct runtime components:
 
 The Next.js application handles:
 - Static page rendering for the landing page (`/`) and the room page (`/room/[code]`).
-- Client-side WebRTC peer management.
+- Client-side WebRTC peer management via PeerJS.
 - Media device access (`getUserMedia`, `getDisplayMedia`).
 - All UI rendering and interaction.
 
-The application is deployed to Vercel as a static-first Next.js app. The room route (`/room/[code]`) is a fully client-rendered page — there is no server-side rendering of room data because all room state is ephemeral and lives only in WebRTC connections and the signaling server's in-memory state.
+The application is deployed to Vercel as a static-first Next.js app. The room route (`/room/[code]`) is a fully client-rendered page.
 
-### 5.2 WebSocket Signaling Server
+### 5.2 PeerJS Signaling
 
-The signaling server is a minimal Node.js WebSocket server (using the `ws` library). Its responsibilities are narrowly scoped:
+Instead of a custom backend, Beam uses the default public PeerServer via the `peerjs` library. Its responsibilities are implicitly handled by the P2P data connections:
 
-- Accept WebSocket connections from clients.
-- Associate each connection with a room code and display name.
-- Relay WebRTC signaling messages (SDP offers, SDP answers, ICE candidates) between peers in the same room.
-- Track which peer is the host of each room.
-- Relay control messages (mute, remove, transfer host, stop screen share) between peers.
-- Notify room members when a peer joins or leaves.
-- Clean up room state when the last participant disconnects.
-
-The signaling server stores no data to disk. All state is in-memory and vanishes when the process restarts or when a room empties. It is deployed as a lightweight Vercel serverless function using WebSocket upgrade handling, or alternatively as a persistent Node.js service on a free-tier platform such as Render or Railway.
-
-**Signaling server message types (all messages are JSON):**
-
-| Type | Direction | Purpose |
-|---|---|---|
-| `join` | Client → Server | Announce entry to a room with display name |
-| `room-info` | Server → Client | Sends back peer list, host ID, and the joining client's assigned peer ID |
-| `peer-joined` | Server → All | Notifies room when a new peer connects |
-| `peer-left` | Server → All | Notifies room when a peer disconnects |
-| `offer` | Client → Server → Peer | Relays SDP offer to a specific peer |
-| `answer` | Client → Server → Peer | Relays SDP answer to a specific peer |
-| `ice-candidate` | Client → Server → Peer | Relays an ICE candidate to a specific peer |
-| `host-assigned` | Server → Client | Notifies a client that they are the host |
-| `host-changed` | Server → All | Notifies all clients of a host transfer |
-| `control-mute` | Host Client → Server → Peer | Instructs a peer to mute |
-| `control-remove` | Host Client → Server → Peer | Instructs a peer to disconnect |
-| `control-stop-share` | Host Client → Server → Peer | Instructs a peer to stop screen sharing |
+- The first user to join a room becomes the "Host" by claiming a deterministic Peer ID (`beam-room-[CODE]`).
+- Subsequent users join as guests with random Peer IDs and connect their data channels to the Host.
+- The Host manages the room membership and relays control messages (mute, remove, transfer host) via data channels.
+- PeerJS abstracts away the raw SDP and ICE candidate relaying.
 
 ### 5.3 STUN Servers
 
@@ -456,21 +434,16 @@ interface UseRoomReturn {
 ```
 
 **Internal responsibilities:**
-- Open and maintain the WebSocket connection to the signaling server.
+- Open and maintain the PeerJS connection.
 - Call `getUserMedia` and manage local stream tracks.
-- Maintain a `Map<string, RTCPeerConnection>` keyed by peer ID.
-- Handle all signaling message dispatch and reception.
-- Handle ICE candidate queueing for peers whose remote description is not yet set.
+- Maintain a list of remote participants.
+- Handle all signaling message dispatch and reception via `usePeerNetwork`.
 - Manage screen share track replacement.
 - Handle incoming control messages (mute, remove, stop-share).
 
-### 8.9 `useSignaling` (Custom Hook)
+### 8.9 `usePeerNetwork` (Custom Hook)
 
-A lower-level hook that wraps the WebSocket connection. Provides `send(message)` and an `onMessage` event subscription pattern. Handles reconnection with exponential backoff (up to five attempts) if the WebSocket drops.
-
-### 8.10 `usePeerConnection` (Custom Hook)
-
-A factory-style hook (called per remote peer) that constructs and manages an `RTCPeerConnection` instance. Handles track attachment, ICE candidate buffering, offer/answer creation, and connection state monitoring.
+A lower-level hook that wraps the PeerJS setup. Provides `send(message)` for data signaling and `callPeer(peerId)` for media. It handles the deterministic host discovery process, manages the `Peer` instance, and surfaces media streams and data signals back to `useRoom`.
 
 ---
 
@@ -732,18 +705,13 @@ The Next.js application is deployed to Vercel with zero-configuration. The `verc
 Environment variables required:
 - `NEXT_PUBLIC_SIGNALING_URL` — the WebSocket URL of the signaling server (e.g., `wss://beam-signal.onrender.com`).
 
-### 18.2 Signaling Server — Render / Railway
+### 18.2 PeerJS Infrastructure
 
-The signaling server is a standalone Node.js WebSocket server deployed on a persistent free-tier service (Render or Railway). It must be a persistent process — not a serverless function — because WebSocket connections must be held open for the duration of a call.
-
-The signaling server listens on a configurable port (default `8080`) and accepts WebSocket upgrades. It is deployed with a simple `Dockerfile` or via the platform's Node.js runtime detection.
+Because Beam uses PeerJS, it no longer requires a custom persistent Node.js service. The application relies entirely on the public `peerjs.com` servers to broker connections. All hosting is handled through the static frontend on Vercel.
 
 ### 18.3 Environment Configuration
 
-| Variable | Location | Value |
-|---|---|---|
-| `NEXT_PUBLIC_SIGNALING_URL` | Vercel env | `wss://[signaling-host]/` |
-| `PORT` | Signaling server env | `8080` |
+There are no required environment variables. The app defaults to public PeerJS servers.
 
 ---
 

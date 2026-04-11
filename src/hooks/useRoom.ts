@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { TOAST_DURATION_MS } from "@/lib/constants";
 import { validateRoomCode } from "@/lib/generateRoomCode";
-import { usePeerConnection } from "@/hooks/usePeerConnection";
-import { useSignaling } from "@/hooks/useSignaling";
+import { usePeerNetwork } from "@/hooks/usePeerNetwork";
 import {
   getClientInstanceId,
   getStoredDisplayName,
@@ -187,9 +186,22 @@ export function useRoom(roomCode: string) {
     setLocalStream(preview.getTracks().length ? preview : null);
   }
 
-  const peerConnection = usePeerConnection({
+  const peerNetwork = usePeerNetwork({
+    clientInstanceId,
+    displayName: resolvedName,
+    enabled: Boolean(resolvedName && isValidRoomCode),
+    roomCode,
     getAudioTrack: () => microphoneTrackRef.current,
     getVideoTrack: () => activeVideoTrackRef.current,
+    onMessage: (message) => {
+      void onMessageRef.current(message);
+    },
+    onRemoteStream: (peerId, stream) => {
+      updateRemoteParticipant(peerId, (participant) => ({
+        ...(participant ?? buildParticipant({ peerId })),
+        stream,
+      }));
+    },
     onConnectionStateChange: (peerId, state) => {
       if (state === "failed") {
         const participant = findParticipant(remoteParticipantsRef.current, peerId);
@@ -197,7 +209,7 @@ export function useRoom(roomCode: string) {
           addNotice(`Connection to ${participant.displayName} failed. Reconnecting...`, "info");
         }
         window.setTimeout(() => {
-          void peerConnection.createOffer(peerId, { iceRestart: true });
+          peerNetwork.callPeer(peerId);
         }, 1000);
       }
 
@@ -206,29 +218,12 @@ export function useRoom(roomCode: string) {
         connectionState: state,
       }));
     },
-    onRemoteStream: (peerId, stream) => {
-      updateRemoteParticipant(peerId, (participant) => ({
-        ...(participant ?? buildParticipant({ peerId })),
-        stream,
-      }));
-    },
-    onSignal: (signal) => sendSignalRef.current(signal),
-  });
-
-  const signaling = useSignaling({
-    clientInstanceId,
-    displayName: resolvedName,
-    enabled: Boolean(resolvedName && isValidRoomCode),
-    onMessage: (message) => {
-      void onMessageRef.current(message);
-    },
-    roomCode,
   });
 
   useEffect(() => {
-    roomSignalRef.current = (signal) => signaling.send(signal);
-    sendSignalRef.current = (signal) => signaling.send(signal);
-  }, [signaling]);
+    roomSignalRef.current = (signal) => peerNetwork.send(signal);
+    sendSignalRef.current = (signal) => peerNetwork.send(signal);
+  }, [peerNetwork]);
 
   async function handleStopScreenShare(announce = true) {
     const screenTrack = screenTrackRef.current;
@@ -246,7 +241,7 @@ export function useRoom(roomCode: string) {
     setIsSharingScreen(false);
     setActiveSharerId((current) => (current === selfId ? null : current));
     syncLocalStream();
-    await peerConnection.replaceVideoTrack(cameraTrackRef.current);
+    await peerNetwork.replaceVideoTrack(cameraTrackRef.current);
 
     if (announce) {
       roomSignalRef.current({ type: "share-ended" });
@@ -291,8 +286,8 @@ export function useRoom(roomCode: string) {
         setCameraEnabled(Boolean(videoTrack?.enabled));
         setMediaState(nextState);
         syncLocalStream();
-        await peerConnection.replaceAudioTrack(audioTrack);
-        await peerConnection.replaceVideoTrack(videoTrack);
+        await peerNetwork.replaceAudioTrack(audioTrack);
+        await peerNetwork.replaceVideoTrack(videoTrack);
         return true;
       } catch (error) {
         failures.push(error as Error);
@@ -370,7 +365,7 @@ export function useRoom(roomCode: string) {
       setIsSharingScreen(true);
       setActiveSharerId(selfId);
       syncLocalStream();
-      await peerConnection.replaceVideoTrack(screenTrack);
+      await peerNetwork.replaceVideoTrack(screenTrack);
     } catch {
       addNotice("Screen sharing was cancelled.", "info");
     }
@@ -392,7 +387,7 @@ export function useRoom(roomCode: string) {
     }
 
     closeParticipantsPanel();
-    peerConnection.closeAll();
+    peerNetwork.closeAll();
     screenTrackRef.current?.stop();
     cameraTrackRef.current?.stop();
     microphoneTrackRef.current?.stop();
@@ -439,7 +434,7 @@ export function useRoom(roomCode: string) {
       setCameraEnabled(false);
       if (!isSharingScreen) {
         activeVideoTrackRef.current = null;
-        await peerConnection.replaceVideoTrack(null);
+        await peerNetwork.replaceVideoTrack(null);
       }
       syncLocalStream();
     } else {
@@ -450,7 +445,7 @@ export function useRoom(roomCode: string) {
         setCameraEnabled(Boolean(videoTrack));
         if (!isSharingScreen) {
           activeVideoTrackRef.current = videoTrack;
-          await peerConnection.replaceVideoTrack(videoTrack);
+          await peerNetwork.replaceVideoTrack(videoTrack);
         }
         syncLocalStream();
       } catch {
@@ -540,7 +535,7 @@ export function useRoom(roomCode: string) {
               continue;
             }
 
-            await peerConnection.createOffer(participant.peerId);
+            peerNetwork.callPeer(participant.peerId);
           }
           break;
         }
@@ -549,29 +544,20 @@ export function useRoom(roomCode: string) {
             buildParticipant(message.participant, participant),
           );
           addNotice(`${message.participant.displayName} joined the room.`, "info");
+          // New peer will call us, no need to initiate call here.
           break;
         }
         case "peer-left": {
-          peerConnection.closePeer(message.peerId);
+          peerNetwork.closePeer(message.peerId);
           updateRemoteParticipant(message.peerId, () => null);
           setActiveSharerId((current) => (current === message.peerId ? null : current));
           break;
         }
-        case "offer": {
-          updateRemoteParticipant(message.fromPeerId, (participant) =>
-            buildParticipant({ peerId: message.fromPeerId }, participant),
-          );
-          await peerConnection.handleOffer(message.fromPeerId, message.sdp);
+        case "offer":
+        case "answer":
+        case "ice-candidate":
+          // Handled internally by PeerJS
           break;
-        }
-        case "answer": {
-          await peerConnection.handleAnswer(message.fromPeerId, message.sdp);
-          break;
-        }
-        case "ice-candidate": {
-          await peerConnection.addIceCandidate(message.fromPeerId, message.candidate);
-          break;
-        }
         case "host-assigned": {
           setHostId(message.peerId);
           break;
@@ -670,7 +656,7 @@ export function useRoom(roomCode: string) {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSharerId, peerConnection, selfId]);
+  }, [activeSharerId, peerNetwork, selfId]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -682,7 +668,7 @@ export function useRoom(roomCode: string) {
   }, [resolvedName, isValidRoomCode]);
 
   useEffect(() => {
-    if (!selfId || signaling.status !== "connected") {
+    if (!selfId || peerNetwork.status !== "connected") {
       return;
     }
 
@@ -692,7 +678,7 @@ export function useRoom(roomCode: string) {
       videoEnabled: isSharingScreen || cameraEnabled,
       isSharingScreen,
     });
-  }, [audioEnabled, cameraEnabled, isSharingScreen, selfId, signaling.status]);
+  }, [audioEnabled, cameraEnabled, isSharingScreen, selfId, peerNetwork.status]);
 
   useEffect(() => {
     return () => {
@@ -724,9 +710,9 @@ export function useRoom(roomCode: string) {
     isSharingScreen,
     stream: localStream,
     connectionState:
-      signaling.status === "connected"
+      peerNetwork.status === "connected"
         ? "connected"
-        : signaling.status === "reconnecting" || signaling.status === "connecting"
+        : peerNetwork.status === "connecting"
           ? "connecting"
           : "idle",
     mediaState,
@@ -780,7 +766,7 @@ export function useRoom(roomCode: string) {
     roomError,
     selfId,
     setDraftName,
-    socketStatus: signaling.status,
+    socketStatus: peerNetwork.status,
     startScreenShare,
     stopParticipantShare,
     submitName,
