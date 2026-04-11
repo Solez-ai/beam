@@ -36,11 +36,25 @@
 - Handle full AV, audio-only, video-only, and no-media permission fallbacks.
 - Include a responsive participant panel, creator attribution, and copy-link flow.
 
-## Architecture
+## Architecture & Tech Stack
 
 Beam runs entirely in the browser using a Next.js App Router frontend in `src/`. It relies on PeerJS to facilitate WebRTC peer discovery, data signaling, and media stream connections, entirely replacing the need for a custom signaling server.
 
 The application uses the public PeerServer to exchange connection requests. Once peers discover each other, audio, video, and screen-share traffic flows directly between browsers over WebRTC.
+
+### Built With
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4 with custom claymorphic effects
+- **Real-time Networking**: WebRTC (via PeerJS)
+- **Animations**: Framer Motion
+- **Icons**: Custom SVG components and Lucide-inspired designs
+
+### How it Works Under the Hood
+1. **Peer Discovery**: When a user creates a room, they claim a deterministic PeerJS ID (e.g., `beam-room-A3K7PQ`) and become the **Host**.
+2. **Mesh Network**: Subsequent users join as guests and connect data channels to the Host. The Host responds with the room's current participant list.
+3. **Media Streams**: Guests initiate WebRTC media calls (`peer.call()`) to everyone else in the room, establishing a full-mesh topology. 
+4. **Data Signaling**: Control actions like Mute, Remove, Make Host, Reactions, and Screen Share Yielding are routed instantly through the Host via PeerJS data connections.
 
 ## Getting Started
 
@@ -77,7 +91,7 @@ Created by **Samin Yeasar**
 - GitHub: [github.com/solez-ai](https://github.com/solez-ai)
 - X: [x.com/Solez_None](https://x.com/Solez_None)
 - Portfolio: [solez.vercel.app](https://solez.vercel.app)
-- Project Repository: [github.com/Solez-ai/process-story](https://github.com/Solez-ai/process-story)
+- Project Repository: [github.com/Solez-ai/beam](https://github.com/Solez-ai/beam)
 
 ## License
 

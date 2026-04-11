@@ -3,7 +3,7 @@ export const siteConfig = {
   description:
     "Beam is a lightning-fast browser video call app with no accounts, no friction, and direct peer-to-peer calls.",
   url: "https://beam-call.vercel.app",
-  repositoryUrl: "https://github.com/Solez-ai/process-story",
+  repositoryUrl: "https://github.com/Solez-ai/beam",
   creator: {
     name: "Samin Yeasar",
     github: "https://github.com/solez-ai",
