@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0  
 **Project URL:** https://beam-call.vercel.app  
-**Repository:** github.com/Solez-ai/process-story  
+**Repository:** github.com/Solez-ai/beam  
 **License:** MIT  
 **Created by:** Samin Yeasar  
 — GitHub: github.com/solez-ai  
@@ -74,7 +74,7 @@ The landing page is the sole entry point to the application. It renders a single
 - A text input field for the user's display name.
 - A "Create Room" button that generates a new cryptographically random six-digit alphanumeric room code, then navigates the user to `/room/[CODE]`.
 - A "Join Room" section containing a six-character code input field and a "Join" button that navigates to the corresponding room route.
-- A small footer crediting the creator: Samin Yeasar, with links to the GitHub repository (github.com/Solez-ai/process-story) and the creator's personal portfolio (https://solez.vercel.app).
+- A small footer crediting the creator: Samin Yeasar, with links to the GitHub repository (github.com/Solez-ai/beam) and the creator's personal portfolio (https://solez.vercel.app).
 
 The display name is stored in component state and passed to the room via `sessionStorage` so it survives the client-side navigation without requiring a URL parameter or server round-trip.
 
@@ -831,7 +831,7 @@ The full license text is stored in `LICENSE` at the repository root.
 | GitHub | github.com/solez-ai |
 | X (Twitter) | x.com/Solez_None |
 | Portfolio | https://solez.vercel.app |
-| Project Repository | github.com/Solez-ai/process-story |
+| Project Repository | github.com/Solez-ai/beam |
 
 Creator attribution appears in two locations within the application:
 
