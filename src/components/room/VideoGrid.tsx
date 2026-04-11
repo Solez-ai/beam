@@ -11,24 +11,21 @@ interface VideoGridProps {
 
 function getGridClass(count: number, hasSharer: boolean) {
   if (hasSharer) {
-    return "grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_22rem] grid-rows-[minmax(24rem,1fr)_auto] lg:grid-rows-1";
+    return "grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_22rem] grid-rows-[minmax(18rem,1fr)_auto] lg:grid-rows-1";
   }
   if (count <= 1) {
-    return "grid-cols-1 auto-rows-[minmax(14rem,1fr)] h-[calc(100vh-14rem)]";
+    return "grid-cols-1 auto-rows-[minmax(14rem,1fr)] h-[calc(100vh-14rem)] sm:h-auto";
   }
   if (count === 2) {
-    return "grid-cols-1 md:grid-cols-2 auto-rows-[minmax(14rem,1fr)]";
-  }
-  if (count <= 4) {
     return "grid-cols-1 sm:grid-cols-2 auto-rows-[minmax(14rem,1fr)]";
   }
+  if (count <= 4) {
+    return "grid-cols-2 sm:grid-cols-2 auto-rows-[minmax(10rem,1fr)] sm:auto-rows-[minmax(14rem,1fr)]";
+  }
   if (count <= 6) {
-    return "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-[minmax(14rem,1fr)]";
+    return "grid-cols-2 sm:grid-cols-3 auto-rows-[minmax(10rem,1fr)] sm:auto-rows-[minmax(14rem,1fr)]";
   }
-  if (count <= 9) {
-    return "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-[minmax(14rem,1fr)]";
-  }
-  return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 auto-rows-[minmax(14rem,1fr)]";
+  return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 auto-rows-[minmax(10rem,1fr)] sm:auto-rows-[minmax(14rem,1fr)]";
 }
 
 export function VideoGrid({

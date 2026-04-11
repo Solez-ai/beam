@@ -198,6 +198,7 @@ export function RoomExperience({ roomCode }: { roomCode: string }) {
         onKeepVisible={() => setIsControlBarVisible(true)}
         onCopyLink={room.copyRoomLink}
         onLeave={handleLeave}
+        onSendReaction={room.sendReaction}
         onStartShare={handleScreenShare}
         onToggleCamera={room.toggleCamera}
         onToggleMicrophone={room.toggleMicrophone}

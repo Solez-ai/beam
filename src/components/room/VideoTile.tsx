@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CrownIcon, MicOffIcon, ScreenShareIcon, UsersIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/cn";
+import { AnimatePresence, motion } from "framer-motion";
+import LikeIcon from "@/components/icons/LikeIcon";
+import ScanHeartIcon from "@/components/icons/ScanHeartIcon";
+import SkullEmoji from "@/components/icons/SkullEmoji";
 
 interface VideoTileProps {
   onOpenActions?: (participant: Participant) => void;
@@ -94,6 +98,22 @@ export function VideoTile({
           </Badge>
         ) : null}
       </div>
+
+      <AnimatePresence>
+        {participant.reaction ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, y: 0 }}
+            animate={{ opacity: 1, scale: 1.2, y: -40 }}
+            exit={{ opacity: 0, scale: 0.8, y: -80 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25, duration: 2 }}
+            className="absolute bottom-1/4 left-1/2 -translate-x-1/2 flex items-center justify-center p-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 z-10 pointer-events-none shadow-2xl"
+          >
+            {participant.reaction === "like" && <LikeIcon size={48} className="text-white" />}
+            {participant.reaction === "heart" && <ScanHeartIcon size={48} className="text-pink-400" />}
+            {participant.reaction === "skull" && <SkullEmoji size={48} className="text-white" />}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       {showManageButton && onOpenActions ? (
         <div className="absolute right-4 top-4 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">

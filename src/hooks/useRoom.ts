@@ -454,6 +454,8 @@ export function useRoom(roomCode: string) {
     }
   }
 
+  const [localReaction, setLocalReaction] = useState<string | null>(null);
+
   async function copyRoomLink() {
     const roomUrl =
       typeof window === "undefined"
@@ -488,6 +490,16 @@ export function useRoom(roomCode: string) {
     }
 
     setPendingShareRequest(null);
+  }
+
+  function sendReaction(reaction: string) {
+    roomSignalRef.current({ type: "reaction", reaction });
+    
+    // Also show locally
+    setLocalReaction(reaction);
+    window.setTimeout(() => {
+      setLocalReaction((current) => (current === reaction ? null : current));
+    }, 3000);
   }
 
   function muteParticipant(peerId: string) {
@@ -646,6 +658,21 @@ export function useRoom(roomCode: string) {
           );
           break;
         }
+        case "reaction": {
+          updateRemoteParticipant(message.peerId, (participant) =>
+            participant ? { ...participant, reaction: message.reaction } : null
+          );
+
+          // Auto-clear reaction after 3 seconds
+          window.setTimeout(() => {
+            updateRemoteParticipant(message.peerId, (participant) =>
+              participant && participant.reaction === message.reaction
+                ? { ...participant, reaction: null }
+                : (participant ?? null)
+            );
+          }, 3000);
+          break;
+        }
         case "error": {
           setRoomError(message.message);
           addNotice(message.message, "danger");
@@ -717,6 +744,7 @@ export function useRoom(roomCode: string) {
           : "idle",
     mediaState,
     isLocal: true,
+    reaction: localReaction,
   };
 
   const participants = dedupeParticipants(
@@ -765,6 +793,7 @@ export function useRoom(roomCode: string) {
     respondToShareRequest,
     roomError,
     selfId,
+    sendReaction,
     setDraftName,
     socketStatus: peerNetwork.status,
     startScreenShare,

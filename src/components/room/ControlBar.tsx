@@ -32,6 +32,7 @@ interface ControlBarProps {
   onKeepVisible: () => void;
   onCopyLink: () => void | Promise<void>;
   onLeave: () => void | Promise<void>;
+  onSendReaction: (reaction: string) => void;
   onStartShare: () => void | Promise<void>;
   onToggleCamera: () => void | Promise<void>;
   onToggleMicrophone: () => void | Promise<void>;
@@ -53,6 +54,7 @@ export function ControlBar({
   onKeepVisible,
   onCopyLink,
   onLeave,
+  onSendReaction,
   onStartShare,
   onToggleCamera,
   onToggleMicrophone,
@@ -132,20 +134,20 @@ export function ControlBar({
           </div>
 
           <div className="flex items-center justify-center sm:w-[280px] sm:justify-end gap-2">
-            <div className="hidden lg:flex items-center gap-2 mr-2 px-3 py-2 rounded-full border border-white/10 bg-white/5">
-              <button aria-label="Like" className="p-1 hover:bg-white/10 rounded-full transition-colors">
+            <div className="flex items-center gap-1 sm:gap-2 mr-0 sm:mr-2 px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-white/10 bg-white/5">
+              <button aria-label="Like" onClick={() => onSendReaction("like")} className="p-1 hover:bg-white/10 rounded-full transition-colors">
                 <LikeIcon size={20} className="text-white" />
               </button>
-              <button aria-label="Heart" className="p-1 hover:bg-white/10 rounded-full transition-colors">
+              <button aria-label="Heart" onClick={() => onSendReaction("heart")} className="p-1 hover:bg-white/10 rounded-full transition-colors">
                 <ScanHeartIcon size={20} className="text-pink-400" />
               </button>
-              <button aria-label="Skull" className="p-1 hover:bg-white/10 rounded-full transition-colors">
+              <button aria-label="Skull" onClick={() => onSendReaction("skull")} className="p-1 hover:bg-white/10 rounded-full transition-colors">
                 <SkullEmoji size={20} className="text-white" />
               </button>
             </div>
             <Button className="h-10 w-full sm:w-auto px-4 text-xs sm:h-10 rounded-full" onClick={onLeave} variant="danger">
               <LeaveIcon className="h-4 w-4" />
-              Leave Room
+              <span className="hidden sm:inline">Leave Room</span>
             </Button>
           </div>
         </div>
